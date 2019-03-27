@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{5eb5ffac-0cec-4ae3-9fdd-f8f6f8a61462}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Aead.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)MD.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Chacha20.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Curve25519.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Ed25519.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Poly1305.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)Srp.cpp">
+      <ExcludedFromBuild>false</ExcludedFromBuild>
+    </ClCompile>
+    <ClInclude Include="$(MSBuildThisFileDirectory)MD.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Crypto.h" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)HmacSha512.cpp">
+      <FileType>CppCode</FileType>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sha512.cpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Sha512blk.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)Srp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)Sha512blk.cpp" />
+  </ItemGroup>
+</Project>

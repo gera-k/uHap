@@ -1,0 +1,82 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28711.60
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinTest", "WinTest\WinTest.vcxproj", "{3DD322CA-3D56-4AAE-9C91-E06C3C628666}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Hap", "Hap\Hap.vcxitems", "{21ED1555-AEE2-4D82-9F08-2E028F331F1A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Crypto", "Crypto\Crypto.vcxitems", "{5EB5FFAC-0CEC-4AE3-9FDD-F8F6F8A61462}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptoTest", "CryptoTest\CryptoTest.vcxitems", "{AF3AA1E0-C8B3-4D9D-81CB-CA23712430D0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Util", "Util\Util.vcxitems", "{B0200AE9-2171-4D62-95A3-F474D8B0B9A9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Windows", "Windows\Windows.vcxitems", "{2D724376-54AB-4DE1-A96E-CEB141D15F49}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Linux", "Linux\Linux.vcxitems", "{A32C0BA9-7C48-424B-B330-87DEBB31E10E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RpiHap", "RpiHap\RpiHap.vcxproj", "{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Hap\Hap.vcxitems*{21ed1555-aee2-4d82-9f08-2e028f331f1a}*SharedItemsImports = 9
+		Windows\Windows.vcxitems*{2d724376-54ab-4de1-a96e-ceb141d15f49}*SharedItemsImports = 9
+		CryptoTest\CryptoTest.vcxitems*{3dd322ca-3d56-4aae-9c91-e06c3c628666}*SharedItemsImports = 4
+		Crypto\Crypto.vcxitems*{3dd322ca-3d56-4aae-9c91-e06c3c628666}*SharedItemsImports = 4
+		Hap\Hap.vcxitems*{3dd322ca-3d56-4aae-9c91-e06c3c628666}*SharedItemsImports = 4
+		Util\Util.vcxitems*{3dd322ca-3d56-4aae-9c91-e06c3c628666}*SharedItemsImports = 4
+		Windows\Windows.vcxitems*{3dd322ca-3d56-4aae-9c91-e06c3c628666}*SharedItemsImports = 4
+		Crypto\Crypto.vcxitems*{5eb5ffac-0cec-4ae3-9fdd-f8f6f8a61462}*SharedItemsImports = 9
+		Linux\Linux.vcxitems*{a32c0ba9-7c48-424b-b330-87debb31e10e}*SharedItemsImports = 9
+		CryptoTest\CryptoTest.vcxitems*{af3aa1e0-c8b3-4d9d-81cb-ca23712430d0}*SharedItemsImports = 9
+		Util\Util.vcxitems*{b0200ae9-2171-4d62-95a3-f474d8b0b9a9}*SharedItemsImports = 9
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|ARM.ActiveCfg = Debug|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|x64.ActiveCfg = Debug|x64
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|x64.Build.0 = Debug|x64
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|x86.ActiveCfg = Debug|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Debug|x86.Build.0 = Debug|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|ARM.ActiveCfg = Release|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|ARM64.ActiveCfg = Release|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|x64.ActiveCfg = Release|x64
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|x64.Build.0 = Release|x64
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|x86.ActiveCfg = Release|Win32
+		{3DD322CA-3D56-4AAE-9C91-E06C3C628666}.Release|x86.Build.0 = Release|Win32
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|ARM.ActiveCfg = Debug|ARM
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|ARM.Build.0 = Debug|ARM
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|ARM64.Build.0 = Debug|ARM64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|x64.ActiveCfg = Debug|x64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|x64.Build.0 = Debug|x64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|x86.ActiveCfg = Debug|x86
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Debug|x86.Build.0 = Debug|x86
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|ARM.ActiveCfg = Release|ARM
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|ARM.Build.0 = Release|ARM
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|ARM64.ActiveCfg = Release|ARM64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|ARM64.Build.0 = Release|ARM64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|x64.ActiveCfg = Release|x64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|x64.Build.0 = Release|x64
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|x86.ActiveCfg = Release|x86
+		{C7D49CC9-891D-4B2C-B5F0-AEC8021F282F}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD4ABC41-7B66-41A3-8037-E52A84BE14E0}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# start/stop homekit daemon.
+
+### BEGIN INIT INFO
+# Provides:          RpiHap
+# Required-Start:    $network $local_fs
+# Required-Stop:     $network $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Homekit daemon
+### END INIT INFO
+
+NAME=RpiHap
+DAEMON=/usr/sbin/$NAME
+PIDFILE=/run/$NAME.pid
+OPTIONS=
+
+test -f $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+start ()
+{
+    pid=$( pidofproc $DAEMON )
+    if [ -n "$pid" ]
+    then
+        log_action_msg "Already running: $NAME"
+        exit 0
+    fi
+    log_daemon_msg "Starting Homekit daemon" "$NAME"
+    start-stop-daemon --start -b --quiet --oknodo --name $NAME --exec $DAEMON -- "$@"
+    pid=$( pidofproc $DAEMON )
+    echo -n "$pid" >"$PIDFILE"
+    log_end_msg $?
+
+}
+
+stop ()
+{
+    log_daemon_msg "Stopping Homekit daemon" "$NAME"
+    start-stop-daemon --stop --quiet --oknodo --name $NAME --exec $DAEMON
+    rm -f "$PIDFILE"
+    log_end_msg $?
+}
+
+case "$1" in
+    start)
+        start $OPTIONS
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start $OPTIONS
+        ;;
+    reset)
+        stop
+        start $OPTIONS -R
+        ;;
+    status)
+        status_of_proc $DAEMON $NAME && exit 0 || exit $?
+        ;;
+    *)
+        log_success_msg "Usage: /etc/init.d/homekit {start|stop|restart|reset|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
