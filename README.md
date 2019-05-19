@@ -29,6 +29,10 @@ Source code structure:
 * Build hardware. Refer to [CuteLight](https://www.hackster.io/gera_k/homekit-controlled-multicolor-light-36279b) project on Hackster for details.
 * Setup RPi for WiFi 
 * Login to RPi 
+* Install Bonjour compatibility library:
+```
+sudo apt install libavahi-compat-libdnssd-dev
+```
 * Clone, build, and install the RpiHap application:
 ```
 pi@raspberrypi:~/github $ git clone https://github.com/gera-k/uHap.git
