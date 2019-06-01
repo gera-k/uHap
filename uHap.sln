@@ -32,6 +32,11 @@ Global
 		Linux\Linux.vcxitems*{a32c0ba9-7c48-424b-b330-87debb31e10e}*SharedItemsImports = 9
 		CryptoTest\CryptoTest.vcxitems*{af3aa1e0-c8b3-4d9d-81cb-ca23712430d0}*SharedItemsImports = 9
 		Util\Util.vcxitems*{b0200ae9-2171-4d62-95a3-f474d8b0b9a9}*SharedItemsImports = 9
+		CryptoTest\CryptoTest.vcxitems*{c7d49cc9-891d-4b2c-b5f0-aec8021f282f}*SharedItemsImports = 4
+		Crypto\Crypto.vcxitems*{c7d49cc9-891d-4b2c-b5f0-aec8021f282f}*SharedItemsImports = 4
+		Hap\Hap.vcxitems*{c7d49cc9-891d-4b2c-b5f0-aec8021f282f}*SharedItemsImports = 4
+		Linux\Linux.vcxitems*{c7d49cc9-891d-4b2c-b5f0-aec8021f282f}*SharedItemsImports = 4
+		Util\Util.vcxitems*{c7d49cc9-891d-4b2c-b5f0-aec8021f282f}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM

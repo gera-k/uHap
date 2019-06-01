@@ -29,22 +29,25 @@ SOFTWARE.
 #include <cmath>
 #include <signal.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
+
+#include <wiringPiSPI.h>
+
+#define HAP_SERVER
+//#define JOY_TEST
 
 #include "Platform.h"
+#include "Util/CLI11.hpp"
+
+#include "Joystick_ADS1015.h"
+#include "Joystick_Quiic.h"
 
 #include "Hap/Hap.h"
 #include "Crypto/Crypto.h"
 #include "Crypto/MD.h"
 #include "CryptoTest/CryptoTest.h"
 #include "Util/FileConfig.h"
-#include "Util/CLI11.hpp"
 
-// TODO: get rid of..
-#include <wiringPi.h>
-#include <wiringPiSPI.h>
+#ifdef HAP_SERVER
 
 #define ACCESSORY_NAME "CuteLight"
 #define CONFIG_NAME "/etc/hap.cfg"
@@ -58,343 +61,6 @@ static void do_restart()
 	Restart = true;
 	kill(getpid(), SIGINT);
 }
-
-// ADS1015 ADC on I2C bus
-class ADS1015
-{
-private:
-	uint8_t _bus;
-	uint8_t _addr;
-	char _dev[16];
-	int _f = -1;
-
-protected:
-	// Registers
-	static const uint8_t Result = 0;
-	static const uint8_t Config = 1;
-	static const uint8_t LoThresh = 2;
-	static const uint8_t HiThresh = 3;
-
-	// Config
-	// Bit [15] OS: Operational status/single-shot conversion start
-	//	This bit determines the operational status of the device.
-	//	This bit can only be written when in power - down mode.
-	//		For a write status :
-	//			0 : No effect
-	//			1 : Begin a single conversion(when in power - down mode)
-	//		For a read status :
-	//			0 : Device is currently performing a conversion
-	//			1 : Device is not currently performing a conversion
-	static const uint16_t OS = (1 << 15);
-	// Bits [14:12] MUX[2:0]: Input multiplexer configuration (ADS1015 only)
-	//	These bits configure the input multiplexer.
-	static const uint16_t MUX000 = (0 << 12);	//	000 : AINP = AIN0 and AINN = AIN1 (default)
-	static const uint16_t MUX001 = (1 << 12);	//	001 : AINP = AIN0 and AINN = AIN3
-	static const uint16_t MUX010 = (2 << 12);	//	010 : AINP = AIN1 and AINN = AIN3
-	static const uint16_t MUX011 = (3 << 12);	//	011 : AINP = AIN2 and AINN = AIN3
-	static const uint16_t MUX100 = (4 << 12);	//	100 : AINP = AIN0 and AINN = GND
-	static const uint16_t MUX101 = (5 << 12);	//	101 : AINP = AIN1 and AINN = GND
-	static const uint16_t MUX110 = (6 << 12);	//	110 : AINP = AIN2 and AINN = GND
-	static const uint16_t MUX111 = (7 << 12);	//	111 : AINP = AIN3 and AINN = GND
-	// Bits[11:9] PGA[2:0]: Programmable gain amplifier configuration(ADS1014 and ADS1015 only)
-	//	These bits configure the programmable gain amplifier.
-	static const uint16_t PGA000 = (0 << 9);	//	000 : FS = ±6.144V
-	static const uint16_t PGA001 = (1 << 9);	//	001 : FS = ±4.096V
-	static const uint16_t PGA010 = (2 << 9);	//	010 : FS = ±2.048V (default)
-	static const uint16_t PGA011 = (3 << 9);	//	011 : FS = ±1.024V
-	static const uint16_t PGA100 = (4 << 9);	//	100 : FS = ±0.512V
-	static const uint16_t PGA101 = (5 << 9);	//	101 : FS = ±0.256V
-	static const uint16_t PGA110 = (6 << 9);	//	110 : FS = ±0.256V
-	static const uint16_t PGA111 = (7 << 9);	//	111 : FS = ±0.256V
-	// Bit [8] MODE: Device operating mode
-	//	This bit controls the current operational mode of the ADS1013/4/5.
-	static const uint16_t MODE_C = (0 << 8);	//	0 : Continuous conversion mode
-	static const uint16_t MODE_S = (1 << 8);	//	1 : Power-down single-shot mode
-	// Bits [7:5] DR[2:0]: Data rate
-	//	These bits control the data rate setting.
-	static const uint16_t DR000 = (0 << 5);		//	000 : 128SPS
-	static const uint16_t DR001 = (1 << 5);		//	001 : 250SPS
-	static const uint16_t DR010 = (2 << 5);		//	010 : 490SPS
-	static const uint16_t DR011 = (3 << 5);		//	011 : 920SPS
-	static const uint16_t DR100 = (4 << 5);		//	100 : 1600SPS (default)
-	static const uint16_t DR101 = (5 << 5);		//	101 : 2400SPS
-	static const uint16_t DR110 = (6 << 5);		//	110 : 3300SPS
-	static const uint16_t DR111 = (7 << 5);		//	111 : 3300SPS
-	//Bit[4] COMP_MODE: Comparator mode(ADS1014 and ADS1015 only)
-	//	This bit controls the comparator mode of operation.It changes whether the comparator is implemented
-	//	as a traditional comparator(COMP_MODE = '0')
-	//	or as a window comparator(COMP_MODE = '1').
-	static const uint16_t COMP_HYS = (0 << 4);	//	0 : Traditional comparator with hysteresis(default)
-	static const uint16_t COMP_WIN = (1 << 4);	//	1 : Window comparator
-	// Bit [3] COMP_POL: Comparator polarity (ADS1014 and ADS1015 only)
-	//	This bit controls the polarity of the ALERT/RDY pin.
-	//	When COMP_POL = '0' the comparator output is active	low.
-	//	When COMP_POL = '1' the ALERT/RDY pin is active high.
-	static const uint16_t COMP_LOW = (0 << 3);	//	0 : Active low(default)
-	static const uint16_t COMP_HIGH = (1 << 3);	//	1 : Active high
-	// Bit[2] COMP_LAT: Latching comparator(ADS1014 and ADS1015 only)
-	//	This bit controls whether the ALERT/RDY pin latches once asserted
-	//	or clears once conversions are within the margin of the upper and lower threshold values.
-	//	When COMP_LAT = '0', the ALERT/RDY pin does not latch when asserted.
-	//	When COMP_LAT = '1', the asserted ALERT/RDY pin remains latched until conversion data are read by the master
-	static const uint16_t COMP_NLAT = (0 << 2);	//	0 : Non - latching comparator(default)
-	static const uint16_t COMP_LAT = (1 << 2);	//	1 : Latching comparator
-	// Bits [1:0] COMP_QUE: Comparator queue and disable (ADS1014 and ADS1015 only)
-	//	These bits perform two functions.
-	//	When set to '11', they disable the comparator function and put the ALERT/RDY pin into a high state.
-	//	When set to any other value, they control the number of successive conversions exceeding the upper
-	//	or lower thresholds required before asserting the ALERT/RDY pin.
-	static const uint16_t CQ00 = (0 << 0);		//	00 : Assert after one conversion
-	static const uint16_t CQ01 = (1 << 0);		//	01 : Assert after two conversions
-	static const uint16_t CQ10 = (2 << 0);		//	10 : Assert after four conversions
-	static const uint16_t CQ11 = (3 << 0);		//	11 : Disable comparator (default)
-
-	// read register
-	uint16_t reg(uint8_t r)
-	{
-		if (_f < 0)
-		{
-			Log::Msg("I2C not opened");
-			return 0xFFFF;
-		}
-
-		// write pointer
-		if (::write(_f, &r, 1) != 1)
-		{
-			Log::Msg("I2C write error");
-			return 0xFFFF;
-		}
-
-		// read data
-		uint8_t b[2];
-		if (::read(_f, b, 2) != 2)
-		{
-			Log::Msg("I2C read data error");
-			return 0xFFFF;
-		}
-
-		uint16_t d = ((uint16_t)b[0] << 8) | b[1];
-		
-		Log::Dbg("ADS reg%d: %04X\n", r, d);
-
-		return d;
-	}
-
-	// write register
-	void reg(uint8_t r, uint16_t d)
-	{
-		if (_f < 0)
-		{
-			Log::Msg("I2C not opened");
-			return;
-		}
-
-		Log::Dbg("ADS reg%d= %04X\n", r, d);
-
-		uint8_t b[3] = { r, uint8_t(d >> 8), uint8_t(d & 0xFF) };
-		if (::write(_f, b, 3) != 3)
-		{
-			Log::Msg("I2C write data error");
-		}
-	}
-
-	void start(uint16_t conf)
-	{
-		reg(Config, conf | OS);
-		reg(Config);
-	}
-
-	bool ready()
-	{
-		return reg(Config) & OS;
-	}
-
-	uint16_t result()
-	{
-		return reg(Result);
-	}
-
-public:
-	ADS1015()
-	{
-	}
-
-	~ADS1015()
-	{
-		if (_f > 0)
-			::close(_f);
-	}
-
-	bool Init(uint8_t bus, uint8_t addr)
-	{
-		_bus = bus;
-		_addr = addr;
-
-		snprintf(_dev, sizeof(_dev), "/dev/i2c-%d", _bus);
-
-		_f = ::open(_dev, O_RDWR);
-
-		if (_f > 0)
-		{
-			if (::ioctl(_f, I2C_SLAVE, _addr) < 0)
-			{
-				::close(_f);
-				_f = -1;
-			}
-		}
-		else
-		{
-			Log::Msg("Device %s open error", _dev);
-		}
-
-		return _f > 0;
-	}
-};
-
-// 4-way joystic on ADS1015
-class Joystick : public ADS1015
-{
-public:
-	enum Channel
-	{
-		Vert = 0,
-		Horiz = 1
-	};
-
-	enum Position
-	{
-		Middle = 0,
-		Low1,
-		Low2,
-		High1,
-		High2,
-	};
-
-private:
-	static const uint16_t ConfigV = MUX100 | PGA000 | MODE_S | DR100;	// V channel
-	static const uint16_t ConfigH = MUX101 | PGA000 | MODE_S | DR100;	// H channel
-
-	static const uint16_t L1 = 1000;	// low theshold 1
-	static const uint16_t L2 = 4000;	// low theshold 2
-	static const uint16_t H1 = 3000;	// high theshold 1
-	static const uint16_t H2 = 8000;	// high theshold 2
-
-	uint16_t Vm = 14350;
-	uint16_t Hm = 14350;
-	uint16_t v;
-	uint16_t h;
-
-	Channel channel = Vert;	// last channel measured
-
-public:
-	Joystick()
-	{
-	}
-
-	bool Init(uint8_t bus, uint8_t addr)
-	{
-		if (!ADS1015::Init(bus, addr))
-			return false;
-
-		// read both V and H channels
-		start(ConfigV);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		if (ready())
-		{
-			Vm = result();
-		}
-		else
-		{
-			Log::Msg("Joystic V: not ready\n");
-		}
-
-		start(ConfigH);
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		if (ready())
-		{
-			Hm = result();
-		}
-		else
-		{
-			Log::Msg("Joystic H: not ready\n");
-		}
-
-		Log::Msg("Joystic Vm: %d  Hm: %d\n", Vm, Hm);
-
-		// start next measurement cycle
-		if (channel == Vert)
-			start(ConfigV);
-		else
-			start(ConfigH);
-
-		return true;
-	}
-
-	Position Get(Channel ch)
-	{
-		// if ADS is ready take measurement
-		//	and start next conversion
-		if (ready())
-		{
-			if (channel == Vert)
-			{
-				v = result();
-				channel = Horiz;
-				start(ConfigH);
-			}
-			else
-			{
-				h = result();
-				channel = Vert;
-				start(ConfigV);
-			}
-		}
-
-		//Log::Msg("Joystick Get(%d) v: %d  h: %d\n", ch, v, h);
-
-		// return position of requested channel
-		if (ch == Vert)
-		{
-			if (Vm > v)
-			{
-				if (Vm - v > L2)
-					return Low2;
-
-				if (Vm - v > L1)
-					return Low1;
-			}
-			else if (v > Vm)
-			{
-				if (v - Vm > H2)
-					return High2;
-
-				if (v - Vm > H1)
-					return High1;
-			}
-		}
-		else if (ch == Horiz)
-		{
-			if (Hm > h)
-			{
-				if (Hm - h > L2)
-					return Low2;
-
-				if (Hm - h > L1)
-					return Low1;
-			}
-			else if (h > Hm)
-			{
-				if (h - Hm > H2)
-					return High2;
-
-				if (h - Hm > H1)
-					return High1;
-			}
-		}
-
-		return Middle;
-	}
-};
 
 // PWM-controlled light bulb
 class LbPWM
@@ -602,7 +268,7 @@ private:
 	Hap::Characteristic::Saturation _saturation;
 
 	LbAPA102C<16> _lb;	// 2 x Sparkfun Lumenati-8
-	Joystick js;
+	Joystick* _js = nullptr;
 
 	std::thread _poll;
 	bool _run = false;
@@ -619,63 +285,72 @@ public:
 
 		_on.onRead([this](Hap::Obj::rd_prm& p) -> void {
 			Log::Msg("%s: read On: %d\n", _name.Value(), _on.Value());
-		});
+			});
 
 		_on.onWrite([this](Hap::Obj::wr_prm& p, Hap::Characteristic::On::V v) -> void {
 			Log::Msg("%s: write On: %d -> %d\n", _name.Value(), _on.Value(), v);
 
 			_lb.On(v);
-		});
+			});
 
 		_brightness.onRead([this](Hap::Obj::rd_prm& p) -> void {
 			Log::Msg("%s: read Brightness: %d\n", _name.Value(), _brightness.Value());
-		});
+			});
 
 		_brightness.onWrite([this](Hap::Obj::wr_prm& p, Hap::Characteristic::Brightness::V v) -> void {
 			Log::Msg("%s: write Brightness: %d -> %d\n", _name.Value(), _brightness.Value(), v);
 
 			_lb.Brightness(v % 101);
-		});
+			});
 
 		_hue.onRead([this](Hap::Obj::rd_prm& p) -> void {
 			Log::Msg("%s: read Hue: %f\n", _name.Value(), _hue.Value());
-		});
+			});
 
 		_hue.onWrite([this](Hap::Obj::wr_prm& p, Hap::Characteristic::Hue::V v) -> void {
 			Log::Msg("%s: write Hue: %f -> %f\n", _name.Value(), _hue.Value(), v);
 
 			_lb.Hue((uint16_t)fmod(v, 360));
-		});
+			});
 
 		_saturation.onRead([this](Hap::Obj::rd_prm& p) -> void {
 			Log::Msg("%s: read Saturation: %f\n", _name.Value(), _saturation.Value());
-		});
+			});
 
 		_saturation.onWrite([this](Hap::Obj::wr_prm& p, Hap::Characteristic::Saturation::V v) -> void {
 			Log::Msg("%s: write Saturation: %f -> %f\n", _name.Value(), _saturation.Value(), v);
 
 			_lb.Saturation(v);
-		});
+			});
+	}
 
+	virtual ~MyLb()
+	{
+		Stop();
+	}
+
+	void Init(Joystick* js)
+	{
+		Log::Msg("%s: Init\n", _name.Value());
+		_js = js;
 		_lb.Init();
+	}
+
+	void Start()
+	{
+		Log::Msg("%s: Start\n", _name.Value());
 
 		_run = true;
 
 		// TODO: sync this thread with onWrites which are in TCP thread context
-		_poll = std::thread([this]() -> void {
+		_poll = std::thread([this]() -> void
+		{
 
 			static constexpr uint32_t ResetTime = 60;	// 6 sec
-			static constexpr int Button = 6;
 
 			Log::Msg("%s: Enter thread\n", _name.Value());
 
-			js.Init(1, 0x48);
-
-			wiringPiSetup();
-			pinMode(Button, INPUT);
-			pullUpDnControl(Button, PUD_UP);
-
-			int btn = HIGH;
+			Joystick::Button btn = Joystick::High;
 			uint32_t cnt = 0;
 			uint32_t btn_cnt = 0;
 
@@ -684,20 +359,20 @@ public:
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				cnt++;
 
-				// read state of on/off pin
-				if (btn == HIGH && digitalRead(Button) == LOW)
+				// process on/off button
+				if (btn == Joystick::High && _js->Get() == Joystick::Low)
 				{
-					btn = LOW;
+					btn = Joystick::Low;
 					auto v = !_on.Value();
 					_on.Value(v);
 					_lb.On(v);
 				}
-				else if (btn == LOW && digitalRead(Button) == HIGH)
+				else if (btn == Joystick::Low && _js->Get() == Joystick::High)
 				{
-					btn = HIGH;
+					btn = Joystick::High;
 				}
 
-				if (!Restart && btn == LOW)
+				if (!Restart && btn == Joystick::Low)
 				{
 					btn_cnt++;
 					if (btn_cnt >= ResetTime)
@@ -710,14 +385,17 @@ public:
 				// state of Joystick
 				Joystick::Position p;
 
+				static constexpr uint32_t lowPer = 2;
+				static constexpr uint32_t highPer = 1;
+
 				// vertical channel controls brightness and saturation
-				p = js.Get(Joystick::Channel::Vert);
+				p = _js->Get(Joystick::Channel::Vert);
 				int32_t upd = 0;
-				if (((p == Joystick::Position::Low1) && (cnt % 10 == 0))
-				 || ((p == Joystick::Position::Low2) && (cnt % 2 == 0)))
+				if (((p == Joystick::Position::Low1) && (cnt % lowPer == 0))
+				 || ((p == Joystick::Position::Low2) && (cnt % highPer == 0)))
 					upd = -1;
-				if (((p == Joystick::Position::High1) && (cnt % 10 == 0))
-				 || ((p == Joystick::Position::High2) && (cnt % 2 == 0)))
+				if (((p == Joystick::Position::High1) && (cnt % lowPer == 0))
+				 || ((p == Joystick::Position::High2) && (cnt % highPer == 0)))
 					upd = 1;
 				if (upd)
 				{
@@ -739,13 +417,13 @@ public:
 				}
 
 				// horizontal channel controls Hue
-				p = js.Get(Joystick::Channel::Horiz);
+				p = _js->Get(Joystick::Channel::Horiz);
 				upd = 0;
-				if (((p == Joystick::Position::Low1) && (cnt % 10 == 0))
-				 || ((p == Joystick::Position::Low2) && (cnt % 2 == 0)))
+				if (((p == Joystick::Position::Low1) && (cnt % lowPer == 0))
+				 || ((p == Joystick::Position::Low2) && (cnt % highPer == 0)))
 					upd = -1;
-				if (((p == Joystick::Position::High1) && (cnt % 10 == 0))
-				 || ((p == Joystick::Position::High2) && (cnt % 2 == 0)))
+				if (((p == Joystick::Position::High1) && (cnt % lowPer == 0))
+				 || ((p == Joystick::Position::High2) && (cnt % highPer == 0)))
 					upd = 1;
 				if (upd)
 				{
@@ -771,11 +449,20 @@ public:
 		});
 	}
 
-	virtual ~MyLb()
+	void Stop()
 	{
-		_run = false;
-		if (_poll.joinable())
-			_poll.join();
+		Log::Msg("%s: Stop\n", _name.Value());
+		if (_run)
+		{
+			_run = false;
+			if (_poll.joinable())
+				_poll.join();
+		}
+	}
+
+	void Name(Hap::Characteristic::Name::V v)
+	{
+		_name.Value(v);
 	}
 
 	Hap::Characteristic::On::V On()
@@ -989,9 +676,9 @@ Hap::BufStatic<char, Hap::MaxHttpFrame * 1> http_tmp;
 Hap::Http::Server::Buf buf = { http_req, http_rsp, http_tmp };
 Hap::Http::Server http(buf, db, myConfig.pairings, myConfig.keys);
 
-int main(int argc, char* argv[])
+int hapServer(int argc, char* argv[])
 {
-	CLI::App app{"LinuxTest HAP server"};
+	CLI::App app{ "LinuxTest HAP server" };
 
 	if (geteuid() != 0)
 	{
@@ -1013,20 +700,31 @@ int main(int argc, char* argv[])
 
 	Log::Init(LOG_NAME);
 
-	// Joystick test
-	if (0)
-	{
-		Joystick js;
+	// setup wiring pi lib
+	wiringPiSetup();
 
-		js.Init(1, 0x48);
+	Joystick_ADS1015 js_1;
+	Joystick_Quiic js_2;
+	static constexpr int Button = 6;
+	Joystick* js = nullptr;
 
-		return 0;
-	}
-	// crypto functions test
-	if (0)
+	if (js_1.Init(1, 0x48, Button))
 	{
-		return cryptoTest();
+		Log::Msg("Joystick_ADS1015 selected\n");
+		js = &js_1;
 	}
+	else if (js_2.Init(1, 0x20))
+	{
+		Log::Msg("Joystick_Quiic selected\n");
+		js = &js_2;
+	}
+	else
+	{
+		Log::Err("Joystick initialization failure\n");
+		return 1;
+	}
+
+	myLb.Init(js);
 
 	while (true)
 	{
@@ -1061,7 +759,13 @@ int main(int argc, char* argv[])
 				mdns->Update();
 		};
 
-		// init static objects
+		// set LB name to Accessory name from config
+		myLb.Name(myConfig.name);
+
+		// start Lb
+		myLb.Start();
+
+		// init HK db
 		db.Init(1);
 
 		// start servers
@@ -1083,6 +787,9 @@ int main(int argc, char* argv[])
 		tcp->Stop();
 		mdns->Stop();
 
+		// stop LB
+		myLb.Stop();
+
 		if (Restart)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -1093,6 +800,55 @@ int main(int argc, char* argv[])
 
 		break;
 	}
-	
+
 	return 0;
+}
+
+#else
+Hap::Config* Hap::config = nullptr;
+#endif
+
+int main(int argc, char* argv[])
+{
+#ifdef HAP_SERVER
+	return hapServer(argc, argv);
+#endif
+
+#ifdef CRYPTO_TEST
+	return cryptoTest();
+#endif
+
+#ifdef JOY_TEST
+	Joystick* js = nullptr;
+
+	Log::Info = true;
+	Log::Debug = true;
+	Log::Console = true;
+
+	static Joystick_ADS1015 js_1;
+	static Joystick_Quiic js_2;
+	static constexpr int Button = 6;
+
+	if (js_1.Init(1, 0x48, Button))
+	{
+		Log::Msg("Joystick_ADS1015 selected\n");
+		js = &js_1;
+	}
+	else if (js_2.Init(1, 0x20))
+	{
+		Log::Msg("Joystick_Quiic selected\n");
+		js = &js_2;
+	}
+	else
+	{
+		Log::Msg("Joystick initialization failure\n");
+	}
+
+	if (js != nullptr)
+	{
+		js->Test();
+	}
+
+	return 0;
+#endif
 }

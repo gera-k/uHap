@@ -81,26 +81,36 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
-  <ImportGroup Label="Shared" />
+  <ImportGroup Label="Shared">
+    <Import Project="..\Crypto\Crypto.vcxitems" Label="Shared" />
+    <Import Project="..\CryptoTest\CryptoTest.vcxitems" Label="Shared" />
+    <Import Project="..\Hap\Hap.vcxitems" Label="Shared" />
+    <Import Project="..\Util\Util.vcxitems" Label="Shared" />
+    <Import Project="..\Linux\Linux.vcxitems" Label="Shared" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <NMakeIncludeSearchPath>$(SolutionDir);$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <RemoteBuildCommandLine>make all</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteBuildCommandLine>make -j `nproc`</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make -j `nproc` all</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
     <RemoteBuildOutputs>$(ProjectName)</RemoteBuildOutputs>
     <LocalRemoteCopySources>true</LocalRemoteCopySources>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <NMakeIncludeSearchPath>$(SolutionDir);$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <RemoteBuildCommandLine>make all</RemoteBuildCommandLine>
-    <RemoteReBuildCommandLine>make clean all</RemoteReBuildCommandLine>
+    <RemoteBuildCommandLine>make -j `nproc`</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>make -j `nproc` all</RemoteReBuildCommandLine>
     <RemoteCleanCommandLine>make clean</RemoteCleanCommandLine>
     <RemoteBuildOutputs>$(ProjectName)</RemoteBuildOutputs>
     <LocalRemoteCopySources>true</LocalRemoteCopySources>
   </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="ADS1015.h" />
+    <ClInclude Include="Joystick.h" />
+    <ClInclude Include="Joystick_ADS1015.h" />
+    <ClInclude Include="Joystick_Quiic.h" />
     <ClInclude Include="Platform.h" />
   </ItemGroup>
   <ItemGroup>
