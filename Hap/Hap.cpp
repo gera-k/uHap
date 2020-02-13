@@ -51,10 +51,10 @@ namespace Hap
 		{
 			Controller* ios = &_db[i];
 
-			if (ios->perm == Controller::None)
+			if (ios->perm == Controller::Perm::None)
 				continue;
 
-			if (perm == Controller::None || perm == ios->perm)
+			if (perm == Controller::Perm::None || perm == ios->perm)
 				cnt++;
 		}
 
@@ -66,7 +66,7 @@ namespace Hap
 		for (unsigned i = 0; i < sizeofarr(_db); i++)
 		{
 			Controller* rec = &_db[i];
-			if (rec->perm == Controller::None)
+			if (rec->perm == Controller::Perm::None)
 			{
 				// add new record
 				memset(rec->id, 0, Controller::IdLen);
@@ -114,7 +114,7 @@ namespace Hap
 		{
 			Controller* ios = &_db[i];
 
-			if (ios->perm == Controller::None)	// empty record
+			if (ios->perm == Controller::Perm::None)	// empty record
 				continue;
 
 			if (memcmp(ios->id, id.p(), id.l()) == 0)
@@ -138,7 +138,7 @@ namespace Hap
 
 			if (memcmp(ios->id, id.p(), id.l()) == 0)
 			{
-				ios->perm = Controller::None;	// mark record empty
+				ios->perm = Controller::Perm::None;	// mark record empty
 				return true;
 			}
 		}
@@ -155,7 +155,7 @@ namespace Hap
 		{
 			Controller* ios = &_db[i];
 
-			if (ios->perm == Controller::None)	// empty record
+			if (ios->perm == Controller::Perm::None)	// empty record
 				continue;
 
 			if (memcmp(ios->id, id.p(), id.l()) == 0)
@@ -171,7 +171,7 @@ namespace Hap
 		{
 			Controller* ios = &_db[i];
 
-			if (ios->perm == Controller::None)	// empty record
+			if (ios->perm == Controller::Perm::None)	// empty record
 				continue;
 
 			if (!cb(ios))
@@ -187,7 +187,7 @@ namespace Hap
 		{
 			Controller* ios = &_db[i];
 
-			ios->perm = Controller::None;
+			ios->perm = Controller::Perm::None;
 		}
 	}
 }

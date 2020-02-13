@@ -85,12 +85,12 @@ public:
 		{
 			Hap::Controller* ios = &_db[i];
 
-			if (ios->perm == Hap::Controller::None)
+			if (ios->perm == Hap::Controller::Perm::None)
 				continue;
 
 			bin2hex(ios->key, ios->KeyLen, key);
 
-			fprintf(f, "\t\t%c[\"%.*s\",\"%s\",\"%d\"]\n", comma ? ',' : ' ', ios->idLen, ios->id, key, ios->perm);
+			fprintf(f, "\t\t%c[\"%.*s\",\"%s\",\"%d\"]\n", comma ? ',' : ' ', ios->idLen, ios->id, key, (int)ios->perm);
 			comma = true;
 		}
 
@@ -162,7 +162,7 @@ template< class DbBase >
 class Db : public DbBase
 {
 public:
-	virtual bool Restore(Hap::Json::ParserDef& js, int t) = 0;
+	virtual bool Restore(Hap::Json::Parser& js, int t) = 0;
 	virtual bool Save(FILE* f) = 0;
 };
 
@@ -335,7 +335,7 @@ private:
 		bool ret = false;
 		char* b = nullptr;
 		long size = 0;
-		Hap::Json::ParserDef js;
+		Hap::Json::ParserStatic<100> js;	// allocates parser on stack, TODO? 
 		int rc;
 
 		if (fseek(f, 0, SEEK_END) == 0)
@@ -401,15 +401,15 @@ private:
 				Log::Msg("Config: restore deviceId '%s'\n", deviceId);
 				break;
 			case key_config:
-				js.is_number<uint32_t>(i, configNum);
+				js.set_if(i, configNum);
 				Log::Msg("Config: restore configNum '%d'\n", configNum);
 				break;
 			case key_category:
-				js.is_number<uint8_t>(i, categoryId);
+				js.set_if(i, categoryId);
 				Log::Msg("Config: restore categoryId '%d'\n", categoryId);
 				break;
 			case key_status:
-				js.is_number<uint8_t>(i, statusFlags);
+				js.set_if(i, statusFlags);
 				Log::Msg("Config: restore statusFlags '%d'\n", statusFlags);
 				break;
 			case key_setup:
@@ -417,7 +417,7 @@ private:
 				Log::Msg("Config: restore setupCode '%s'\n", setupCode);
 				break;
 			case key_port:
-				js.is_number<uint16_t>(i, port);
+				js.set_if(i, port);
 				Log::Msg("Config: restore port '%d'\n", port);
 				port = swap_16(port);
 				break;
@@ -444,7 +444,7 @@ private:
 						int id = js.find(r, 0);
 						int key = js.find(r, 1);
 						uint8_t perm;
-						if (id > 0 && key > 0 && js.is_number<uint8_t>(js.find(r, 2), perm))
+						if (id > 0 && key > 0 && js.set_if(js.find(r, 2), perm))
 						{
 							if (pairings.Add(js.start(id), js.length(id), js.start(key), js.length(key), perm))
 								Log::Msg("Config: restore pairing '%.*s' '%.*s' %d\n", js.length(id), js.start(id),

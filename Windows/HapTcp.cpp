@@ -98,7 +98,7 @@ namespace Hap
 				// read event on server socket - incoming connection
 				if (FD_ISSET(server, &readfds))
 				{
-					int clnt = accept(server, (struct sockaddr *)&address, &addrlen);
+					SOCKET clnt = accept(server, (struct sockaddr *)&address, &addrlen);
 					if (clnt == INVALID_SOCKET)
 					{
 						Log::Msg("accept error\n");

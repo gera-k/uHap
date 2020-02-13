@@ -27,10 +27,33 @@ SOFTWARE.
 
 namespace Hap
 {
+	// HAP Protocol Information
+	//
+	//	UUID 000000A2-0000-1000-8000-0026BB765291
+	//	Required Characteristics
+	//		0 Version
+	//	Every accessory must expose a single instance of the HAP protocol information.For a bridge accessory,
+	//	only the primary HAP accessory object must contain this service.The value is transport dependent.
+	class ProtocolInformation : public Service<1>	// reserve space for 1 characteristic
+	{
+	protected:
+		Characteristic::Version _version;
+
+	public:
+		static constexpr const char* Type = "A2";
+
+		ProtocolInformation(
+			Property::PrimaryService::T primary = false,
+			Property::HiddenService::T hidden = false
+		) : Service(Type)
+		{
+			AddCharacteristic(&_version, 0);
+		}
+	};
+
 	// Accessory Information
 	//	
 	//	UUID 0000003E-0000-1000-8000-0026BB765291
-	//	Type public.hap.service.accessory-information
 	//	Required Characteristics 
 	//		0 Identify
 	//		1 Manufacturer
@@ -75,7 +98,6 @@ namespace Hap
 	// Lightbulb
 	//	This service describes a lightbulb.
 	//	UUID 00000043-0000-1000-8000-0026BB765291
-	//	Type public.hap.service.lightbulb
 	//	Required Characteristics 
 	//		0 On
 	//	Optional Characteristics
@@ -110,7 +132,45 @@ namespace Hap
 			AddCharacteristic(&_on, 0);
 		}
 	};
-}
 
+	// Garage Door Opener
+	//	This service describes a garage door opener that controls a single door.
+	//	If a garage has more than one door,
+	//	then each door should have its own Garage Door Opener Service.
+	//	UUID 00000041-0000-1000-8000-0026BB765291
+	//	Required Characteristics 
+	//		0 Current Door State
+	//		1 Target Door State
+	//		2 Obstruction Detected
+	//	Optional Characteristics
+	//		3 Name
+	//		4 Lock Current State
+	//		5 Lock Target State
+	class GarageDoorOpener : public Service<6>	// reserve space for 6 characteristics
+	{
+	protected:
+		Characteristic::CurrentDoorState _current;
+		Characteristic::TargetDoorState _target;
+		Characteristic::ObstructionDetected _obstruction;
+
+		void AddName(Characteristic::Name& ch) { AddCharacteristic(&ch, 3); }
+		//void AddLockCurrent(Characteristic::LockCurrentState& ch) { AddCharacteristic(&ch, 4); }
+		//void AddLockTarget(Characteristic::LockTargetState& ch) { AddCharacteristic(&ch, 5); }
+
+	public:
+		static constexpr const char* Type = "41";
+
+		GarageDoorOpener(
+			Property::PrimaryService::T primary = false,
+			Property::HiddenService::T hidden = false
+		) : Service(Type)
+		{
+			AddCharacteristic(&_current, 0);
+			AddCharacteristic(&_target, 1);
+			AddCharacteristic(&_obstruction, 2);
+		}
+	};
+
+}
 
 #endif

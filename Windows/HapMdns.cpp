@@ -96,7 +96,7 @@ namespace Hap
 			{
 				Log::Msg("MDNS Service '%s' registered\n", _name);
 
-				std::unique_lock<std::mutex> lock(mtx);
+				std::unique_lock lock(mtx);
 				cv.wait(lock, [this] {return !running; });
 			}
 

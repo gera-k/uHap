@@ -541,7 +541,7 @@ public:
 	}
 
 	// restore Db from config file
-	virtual bool Restore(Hap::Json::ParserDef& js, int t) override
+	virtual bool Restore(Hap::Json::Parser& js, int t) override
 	{
 		if (js.type(t) != Hap::Json::JSMN_OBJECT)
 		{
@@ -579,7 +579,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::On::V v;
-					if (!js.is_bool(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.On: invalid\n", lb.nm);
 						continue;
@@ -593,7 +593,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Brightness::V v;
-					if (!js.is_number<Hap::Characteristic::Brightness::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Brightness: invalid\n", lb.nm);
 						continue;
@@ -607,7 +607,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Hue::V v;
-					if (!js.is_number<Hap::Characteristic::Hue::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Hue: invalid\n", lb.nm);
 						continue;
@@ -621,7 +621,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Saturation::V v;
-					if (!js.is_number<Hap::Characteristic::Saturation::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Saturation: invalid\n", lb.nm);
 						continue;
@@ -673,7 +673,7 @@ Hap::Config* Hap::config = &myConfig;
 Hap::BufStatic<char, Hap::MaxHttpFrame * 2> http_req;
 Hap::BufStatic<char, Hap::MaxHttpFrame * 4> http_rsp;
 Hap::BufStatic<char, Hap::MaxHttpFrame * 1> http_tmp;
-Hap::Http::Server::Buf buf = { http_req, http_rsp, http_tmp };
+Hap::Http::Server::Buf buf{ http_req, http_rsp, http_tmp };
 Hap::Http::Server http(buf, db, myConfig.pairings, myConfig.keys);
 
 int hapServer(int argc, char* argv[])

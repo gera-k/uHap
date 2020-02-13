@@ -38,11 +38,11 @@ SOFTWARE.
 namespace Hap
 {
 	// global constants
-	constexpr uint8_t MaxPairings = 16;						// max number of pairings the accessory supports (4.11 Add pairing)
-	constexpr uint8_t MaxHttpSessions = 8;					// max HTTP sessions (5.2.3 TCP requirements)
+	constexpr uint8_t MaxPairings = 16;						// max number of pairings the accessory supports (5.10 Add pairing)
+	constexpr uint8_t MaxHttpSessions = 8;					// max HTTP sessions (6.2.3 TCP requirements)
 	constexpr uint8_t MaxHttpHeaders = 20;					// max number of HTTP headers in request
 	constexpr uint8_t MaxHttpTlv = 10;						// max num of items in incoming TLV
-	constexpr uint16_t MaxHttpBlock = 1024;					// max size of encrypted data block (5.5.2 Session securiry)
+	constexpr uint16_t MaxHttpBlock = 1024;					// max size of encrypted data block (6.5.2 Session securiry)
 	constexpr uint16_t MaxHttpFrame = MaxHttpBlock + 2 + 16;// max size of encrypted HTTP frame (size + data + tag)
 
 	constexpr uint16_t DefString = 64;		// default length of a string characteristic
@@ -74,7 +74,7 @@ namespace Hap
 		using Key = uint8_t[KeyLen];
 
 		// permissions
-		enum Perm
+		enum class Perm : uint8_t
 		{
 			None = 0xFF,
 			Regular = 0,
@@ -130,7 +130,7 @@ namespace Hap
 		}
 
 	protected:
-		enum
+		enum Key
 		{
 			key_name,
 			key_model,

@@ -33,7 +33,7 @@ namespace Hap
 	public:
 		// count pairing records with matching Permissions
 		//	in perm == None, cput all records
-		uint8_t Count(Controller::Perm perm = Controller::None);
+		uint8_t Count(Controller::Perm perm = Controller::Perm::None);
 
 		// add pairing record, returns false if failed
 		bool Add(const uint8_t* id, uint32_t id_len, const uint8_t* key, Controller::Perm perm);

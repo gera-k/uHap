@@ -35,6 +35,7 @@ SOFTWARE.
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <future>
 
 #include "Util/FileLog.h"
 

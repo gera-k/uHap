@@ -2,7 +2,8 @@
 
 #include "Hap.h"
 
-namespace Hap {	namespace Json {
+namespace Hap::Json
+{
 
 #include "jsmn.h"
 
@@ -318,4 +319,4 @@ void jsmn_init(jsmn_parser *parser) {
 	parser->toksuper = -1;
 }
 
-}} // namespace Hap::Json
+} // namespace Hap::Json

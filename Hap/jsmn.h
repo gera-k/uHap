@@ -3,7 +3,8 @@
 #ifndef __JSMN_H_
 #define __JSMN_H_
 
-namespace Hap {	namespace Json {
+namespace Hap::Json
+{
 
 #define JSMN_PARENT_LINKS
 #define JSMN_STRICT
@@ -71,7 +72,7 @@ void jsmn_init(jsmn_parser *parser);
 int jsmn_parse(jsmn_parser *parser, const char *js, uint32_t len,
 		jsmntok_t *tokens, unsigned int num_tokens);
 
-}}
+}
 
 #endif /* __JSMN_H_ */
 

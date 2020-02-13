@@ -38,6 +38,15 @@ SOFTWARE.
 
 // HAP database
 
+class MyProtocolInformation : public Hap::ProtocolInformation
+{
+public:
+	MyProtocolInformation()
+	{
+		_version.Value("1.1.0");	// R2-6.6.3 IP Protocol Version
+	}
+} myPi;
+
 class MyAccessoryInformation : public Hap::AccessoryInformation
 {
 public:
@@ -149,14 +158,76 @@ public:
 
 } myLb1("Light-1", 1), myLb2("Light-2", 2);
 
-class MyAcc : public Hap::Accessory<3>
+//	Current:
+//		0 "Open. The door is fully open."
+//		1 "Closed. The door is fully closed."
+//		2 "Opening. The door is actively opening."
+//		3 "Closing. The door is actively closing."
+//		4 "Stopped. The door is not moving, and it is not fully open nor fully closed."
+//	Target:
+//		0 "Open"
+//		1 "Closed"
+class MyOpener : public Hap::GarageDoorOpener
+{
+private:
+	Hap::Characteristic::Name _name;
+
+	std::future<void> mover;
+
+public:
+	MyOpener(Hap::Characteristic::Name::V name)
+	{
+		AddName(_name);
+
+		_name.Value(name);
+
+		_current.onRead([this](Hap::Obj::rd_prm& p) -> void {
+			Log::Msg("MyOpener: read Current: %d\n", _current.Value());
+			});
+
+		_target.onRead([this](Hap::Obj::rd_prm& p) -> void {
+			Log::Msg("MyOpener: read Target: %d\n", _target.Value());
+			});
+
+		_target.onWrite([this](Hap::Obj::wr_prm& p, Hap::Characteristic::TargetDoorState::V v) -> void {
+			Log::Msg("MyOpener: write Target: %d -> %d\n", _target.Value(), v);
+			if (mover.valid())
+				mover.wait();
+			mover = std::async(std::launch::async, [this] {
+
+				if (_current.Value() != 1 && _target.Value() == 1)	// ->Close
+				{
+					Log::Msg("MyOpener: Closing...");
+					_current.Value(3);
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					Log::Msg("MyOpener: Closed");
+					_current.Value(1);
+				}
+				else if (_current.Value() != 0 && _target.Value() == 0)	// ->Open
+				{
+					Log::Msg("MyOpener: Opening...");
+					_current.Value(2);
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					Log::Msg("MyOpener: Open");
+					_current.Value(0);
+				}
+			});
+		});
+
+	}
+
+} myOpener("Sesame");
+
+class MyAcc : public Hap::Accessory<5>
 {
 public:
-	MyAcc() : Hap::Accessory<3>()
+	MyAcc() : Hap::Accessory<5>()
 	{
 		AddService(&myAis);
-		AddService(&myLb1);
-		AddService(&myLb2);
+		AddService(&myPi);
+//		AddService(&myLb1);
+//		AddService(&myLb2);
+		AddService(&myOpener);
 	}
 
 } myAcc;
@@ -182,7 +253,7 @@ public:
 
 
 	// restore Db from config file
-	virtual bool Restore(Hap::Json::ParserDef& js, int t) override
+	virtual bool Restore(Hap::Json::Parser& js, int t) override
 	{
 		if (js.type(t) != Hap::Json::JSMN_OBJECT)
 		{
@@ -220,7 +291,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::On::V v;
-					if (!js.is_bool(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.On: invalid\n", lb.nm);
 						continue;
@@ -234,7 +305,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Brightness::V v;
-					if (!js.is_number<Hap::Characteristic::Brightness::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Brightness: invalid\n", lb.nm);
 						continue;
@@ -248,7 +319,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Hue::V v;
-					if (!js.is_number<Hap::Characteristic::Hue::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Hue: invalid\n", lb.nm);
 						continue;
@@ -262,7 +333,7 @@ public:
 				{
 					c++;
 					Hap::Characteristic::Saturation::V v;
-					if (!js.is_number<Hap::Characteristic::Saturation::V>(c, v))
+					if (!js.set_if(c, v))
 					{
 						Log::Msg("Db::Restore: %s.Saturation: invalid\n", lb.nm);
 						continue;
@@ -312,8 +383,8 @@ const Hap::File::Config<MyDbType>::Default configDef =
 	"000-11-000",		// const char* setupCode;
 	7889				// uint16_t tcpPort;
 };
-Hap::File::Config<MyDbType> myConfig(&db, &configDef, CONFIG_NAME);
-Hap::Config* Hap::config = &myConfig;
+Hap::File::Config myConfig{ &db, &configDef, CONFIG_NAME };
+Hap::Config* Hap::config{ &myConfig };
 
 // statically allocated storage for HTTP processing
 //	Our implementation is single-threaded hence the only one set of buffers.
@@ -322,9 +393,9 @@ Hap::Config* Hap::config = &myConfig;
 char http_req_buf[Hap::MaxHttpFrame * 2];
 char http_rsp_buf[Hap::MaxHttpFrame * 4];
 char http_tmp_buf[Hap::MaxHttpFrame * 1];
-static Hap::Buf<char> http_req(http_req_buf, sizeof(http_req_buf));
-static Hap::Buf<char> http_rsp(http_rsp_buf, sizeof(http_rsp_buf));
-static Hap::Buf<char> http_tmp(http_tmp_buf, sizeof(http_tmp_buf));
+static Hap::Buf http_req(http_req_buf, sizeof(http_req_buf));
+static Hap::Buf http_rsp(http_rsp_buf, sizeof(http_rsp_buf));
+static Hap::Buf http_tmp(http_tmp_buf, sizeof(http_tmp_buf));
 static Hap::Http::Server::Buf http_buf{ http_req, http_rsp, http_tmp };
 
 Hap::Http::Server http(http_buf, db, myConfig.pairings, myConfig.keys);

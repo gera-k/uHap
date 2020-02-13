@@ -130,12 +130,22 @@ private:
 
 	uint16_t H()
 	{
-		return reg16(Reg::Hor) >> 6;
+		uint16_t r = reg16(Reg::Hor);
+
+		if (r == 0xFFFF)
+			return 0;
+
+		return r >> 6;
 	}
 
 	uint16_t V()
 	{
-		return reg16(Reg::Ver) >> 6;
+		uint16_t r = reg16(Reg::Ver);
+
+		if (r == 0xFFFF)
+			return 0;
+
+		return r >> 6;
 	}
 
 	Button B()

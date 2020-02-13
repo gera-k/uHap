@@ -114,6 +114,4 @@ namespace Hap
 		};
 		return str[int(c)];
 	}
-
-
 }

@@ -32,14 +32,15 @@ namespace Hap
 	class Mdns
 	{
 	protected:
-		char _name[64];			// service name - initially set to _cfg.name
+		char _name[64];			// UTF8 encoded service name, max len 63 bytes (6.4 discovery), initially set to _cfg.name
+								// must match name provided in Accessory Information Service of Accessory with aid = 1
 		char _txt[128];			// txt buffer
 		uint8_t _txt_len = 0;
 
 		void update()
 		{
 			char* p = _txt;
-			int max = sizeof(_txt) - 1;
+			uint8_t max = sizeof(_txt) - 1;
 			char l;
 
 			if (!Hap::config->BCT)
@@ -59,7 +60,7 @@ namespace Hap
 			*p++ = l;
 			p += l;
 
-			// ff - feature flags
+			// ff - feature flags - no flags defined in HAP non-comm spec R2
 			//		1 - supports HAP pairing
 			l = snprintf(p + 1, max, "ff=0");
 			max -= l;
@@ -82,7 +83,7 @@ namespace Hap
 			p += l;
 
 			// pv - protocol version, requred if not 1.0
-			l = snprintf(p + 1, max, "pv=1.0");
+			l = snprintf(p + 1, max, "pv=1.1");
 			max -= l;
 			if (max <= 0) goto Ret;
 			*p++ = l;
@@ -108,9 +109,11 @@ namespace Hap
 			if (max <= 0) goto Ret;
 			*p++ = l;
 			p += l;
+
+			// setup hash - mentioned in R2 but not documented
 		
 		Ret:
-			_txt_len = p - _txt;
+			_txt_len = (uint8_t)(p - _txt);
 		}
 	
 	public:

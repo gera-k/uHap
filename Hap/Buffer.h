@@ -32,17 +32,32 @@ namespace Hap
 	class Buf
 	{
 	public:
-		Buf() : _p(nullptr), _l(0) {}
-		Buf(T* p, L l) : _p(p), _l(l) {}
-		auto p() const { return _p; }
-		auto l() const { return _l; }
-		auto& p() { return _p; }
-		auto& l() { return _l; }
+		Buf()
+		{}
 
-		T& operator[](int i) { return p[i]; }
-//	private:
-		T* _p;
-		L _l;
+		Buf(T* p, L l)
+			: _p(p), _l(l)
+		{}
+
+		T* p() const
+		{
+			return _p;
+		}
+
+		L l() const
+		{
+			return _l;
+		}
+
+		void set(T* p, L l)
+		{
+			_p = p;
+			_l = l;
+		}
+
+	private:
+		T* _p = nullptr;
+		L _l = 0;
 	};
 
 
@@ -57,12 +72,6 @@ namespace Hap
 		BufStatic() : Buf<T>(_b, s) {}
 	};
 
-	// make buffer on passed-in memory
-	template<typename T, typename S = uint32_t>
-	static inline Buf<T,S> makeBuf(T* p, S s) 
-	{ 
-		return Buf<T,S>(p, s);
-	}
 }
 
 #endif /*_HAP_BUFFER_H_*/

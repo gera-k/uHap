@@ -5,6 +5,10 @@ INIT_SCRIPT = homekit
 
 DEBUG ?= 0
 
+# enable GCC9
+# refer to https://solarianprogrammer.com/2017/12/08/raspberry-pi-raspbian-install-gcc-compile-cpp-17-programs/
+GCC9 ?= 0
+
 SRCS_C := \
     $(shell find ../Hap/*.c) \
 
@@ -21,14 +25,20 @@ ifeq ($(DEBUG),1)
 CFLAGS = -g -O0
 else
 CFLAGS = -O2
-LDFLAGS = 
 endif
 
 CC = gcc
-CPP = gcc
+CPP = g++
 CFLAGS += -I. -I.. -Wall
-CPPFLAGS = $(CFLAGS)
-LDFLAGS += -lm -lstdc++ -lpthread -ldns_sd -lwiringPi
+CPPFLAGS = $(CFLAGS) -std=c++17
+LDFLAGS = -lm -lstdc++ -lpthread -ldns_sd -lwiringPi
+
+ifeq ($(GCC9),1)
+CC = /opt/gcc-9.1.0/bin/gcc-9.1
+CPP = /opt/gcc-9.1.0/bin/g++-9.1
+LDFLAGS = -L/opt/gcc-9.1.0/lib -lm -lstdc++ -lpthread -ldns_sd -lwiringPi
+endif
+
 
 all: $(TARGET)
 
