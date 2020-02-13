@@ -27,6 +27,7 @@ Source code structure:
 ## Building for Raspbian
 
 * Build hardware. Refer to [CuteLight](https://www.hackster.io/gera_k/homekit-controlled-multicolor-light-36279b) project on Hackster for details.
+* Install latest Raspbian. GCC ver 8+ is required.
 * Setup RPi for WiFi 
 * Login to RPi 
 * Install Bonjour compatibility library:
