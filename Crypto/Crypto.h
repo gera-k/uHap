@@ -1,25 +1,6 @@
 /*
-MIT License
-
-Copyright(c) 2019 Gera Kazakov
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files(the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
 */
 
 #ifndef _CRYPTO_H_
@@ -83,8 +64,14 @@ namespace Crypto
 	class HmacSha512
 	{
 	public:
+		HmacSha512() {}
+
 		// calculate HMAC of key/msg
 		HmacSha512(const uint8_t *key, uint32_t key_size,
+			const uint8_t *msg, uint32_t msg_len,
+			uint8_t *mac, uint32_t mac_size);
+
+		void calc(const uint8_t *key, uint32_t key_size,
 			const uint8_t *msg, uint32_t msg_len,
 			uint8_t *mac, uint32_t mac_size);
 
@@ -109,6 +96,9 @@ namespace Crypto
 	class HkdfSha512
 	{
 	public:
+		HkdfSha512()
+		{}
+
 		HkdfSha512
 		(
 			const uint8_t* salt, uint32_t salt_len,		// optional salt value (a non-secret random value)
@@ -117,8 +107,19 @@ namespace Crypto
 			uint8_t* okm, uint32_t okm_len				// output keying material (L = okm_len)
 		)
 		{
+			calc(salt, salt_len, ikm, ikm_len, info, info_len, okm, okm_len);
+		}
+
+		void calc
+		(
+			const uint8_t* salt, uint32_t salt_len,		// optional salt value (a non-secret random value)
+			const uint8_t* ikm, uint32_t ikm_len,		// input keying material
+			const uint8_t* info, uint32_t info_len,		// optional context and application specific information
+			uint8_t* okm, uint32_t okm_len				// output keying material (L = okm_len)
+		)
+		{
 			// PRK = HMAC-Hash(salt, IKM)
-			HmacSha512(salt, salt_len, ikm, ikm_len, prk, sizeof(prk));
+			hmac.calc(salt, salt_len, ikm, ikm_len, prk, sizeof(prk));
 
 			// RFC5869 algoithm:
 			//	N = ceil(L/HashLen)
@@ -135,14 +136,15 @@ namespace Crypto
 			//	N = 1
 			//	T = T(1)
 			//	OKM = first L octets of T
-			HmacSha512 t1(prk, sizeof(prk)); // T(1) = HMAC(prk, info | 0x01)
-			t1.next(info, info_len);
+			hmac.start(prk, sizeof(prk)); // T(1) = HMAC(prk, info | 0x01)
+			hmac.next(info, info_len);
 			uint8_t ctr = 0x01;
-			t1.next(&ctr, 1);
-			t1.end(okm, okm_len);  // T(1) -> okm
+			hmac.next(&ctr, 1);
+			hmac.end(okm, okm_len);  // T(1) -> okm
 		}
 
 	private:
+		HmacSha512 hmac;
 		uint8_t prk[Sha512::HASH_SIZE_BYTES];
 	};
 
@@ -349,6 +351,8 @@ namespace Crypto
 			const uint8_t *pubKey
 		);
 
+		void erase();
+
 		// init keys - create new key pair and store them internally
 		void init();
 
@@ -356,7 +360,7 @@ namespace Crypto
 		const uint8_t* pubKey();
 
 		// generate shared secret from stored private key and other public key
-		const uint8_t* sharedSecret(const uint8_t* pubKey = nullptr);
+		uint8_t* sharedSecret(const uint8_t* pubKey = nullptr);
 
 	private:
 		uint8_t _prvKey[KEY_SIZE_BYTES];
@@ -370,10 +374,10 @@ namespace Crypto
 	class Ed25519
 	{
 	public:
-		constexpr static unsigned int SIGN_SIZE_BYTES = 64;
-		constexpr static unsigned int SEED_SIZE_BYTES = 32;
-		constexpr static unsigned int PUBKEY_SIZE_BYTES = 32;
-		constexpr static unsigned int PRVKEY_SIZE_BYTES = 64;
+		constexpr static uint8_t SIGN_SIZE_BYTES = 64;
+		constexpr static uint8_t SEED_SIZE_BYTES = 32;
+		constexpr static uint8_t PUBKEY_SIZE_BYTES = 32;
+		constexpr static uint8_t PRVKEY_SIZE_BYTES = 64;
 
 		Ed25519() {};
 
@@ -412,7 +416,7 @@ namespace Crypto
 			const uint8_t *pubKey	// other side public key
 		);
 
-	protected:
+	//protected:
 		uint8_t _prvKey[PRVKEY_SIZE_BYTES];
 		uint8_t _pubKey[PUBKEY_SIZE_BYTES];
 	};

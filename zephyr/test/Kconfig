@@ -1,0 +1,9 @@
+mainmenu "HAP BLE sample application"
+
+config HAP_CRYPTO_TEST
+	bool "Enable Crypto functions test"
+	default n
+	help
+	  Enable Crypto functions test
+
+source "Kconfig.zephyr"

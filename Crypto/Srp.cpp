@@ -1,25 +1,6 @@
 /*
-MIT License
-
-Copyright(c) 2019 Gera Kazakov
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files(the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
 */
 
 #include "Crypto/Crypto.h"
@@ -105,15 +86,6 @@ namespace Srp
 	Crypto::Sha512 sha;
 	static uint8_t hash[Crypto::Sha512::HASH_SIZE_BYTES];
 
-	Verifier::Verifier(
-		const char *I,
-		const char *p,
-		const uint8_t* s
-	)
-	{
-		init(I, p, s);
-	}
-
 	void Verifier::init(
 		const char *I_,
 		const char *p_,
@@ -124,6 +96,17 @@ namespace Srp
 		p = p_;
 		
 		init(s_);
+	}
+
+	void Verifier::init(
+		const char *I_,
+		const uint8_t *v_,
+		const uint8_t* s_
+	)
+	{
+		I = I_;
+		memcpy(v, v_, SRP_VERIFIER_BYTES);
+		memcpy(s, s_, SRP_SALT_BYTES);
 	}
 
 	void Verifier::init(const uint8_t* s_)
@@ -150,7 +133,7 @@ namespace Srp
 
 		// Precalculate on Host and store:
 		// v = g^x	 - password verifier
-		t2.expMod(g, t1/*, tmp*/);			// 1D^16D
+		t2.expMod(g, t1);			// 1D^16D
 		t2.val(v, SRP_VERIFIER_BYTES);
 	}
 
@@ -280,7 +263,7 @@ namespace Srp
 		_V.get(V);
 	}
 	
-	User::User(
+	void User::init(
 		const char * username,				// username
 		const char * password,				// password
 		const uint8_t a[SRP_PRIVATE_BYTES]	// Private value (random)

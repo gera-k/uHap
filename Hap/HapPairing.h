@@ -1,61 +1,117 @@
-/*
-MIT License
-
-Copyright (c) 2019 Gera Kazakov
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
 #ifndef _HAP_PAIRING_H_
 #define _HAP_PAIRING_H_
 
-namespace Hap
+#include "Platform.h"
+
+#include "Hap.h"
+#include "HapTlv.h"
+
+// Hap pairing
+
+namespace Hap::Pairing
 {
-	// pairings DB, persistent across reboots
-	class Pairings
+    const char* TlvTypeToStr();
+
+	// Pairing Path	(BLE characeristic or HTTP path)
+	enum class Path : uint8_t
 	{
-	public:
-		// count pairing records with matching Permissions
-		//	in perm == None, cput all records
-		uint8_t Count(Controller::Perm perm = Controller::Perm::None);
-
-		// add pairing record, returns false if failed
-		bool Add(const uint8_t* id, uint32_t id_len, const uint8_t* key, Controller::Perm perm);
-		bool Add(const Hap::Tlv::Item& id, const Hap::Tlv::Item& key, Controller::Perm perm);
-
-		// update controller permissions
-		bool Update(const Hap::Tlv::Item& id, Controller::Perm perm);
-
-		// remove controller
-		bool Remove(const Hap::Tlv::Item& id);
-
-		// get pairing record, returns nullptr if not found
-		const Controller* Get(const Hap::Tlv::Item& id);
-
-		bool forEach(std::function<bool(const Controller*)> cb);
-
-	protected:
-		// Init pairings - destroy all existing records
-		void init();
-
-		Controller _db[MaxPairings];
+		Unknown = 0,
+		Setup = 1,
+		Verify = 2,
+		Pairings = 3
 	};
+
+    // Pairing Method   (R2: 5.15)
+   	enum class Method : uint8_t
+	{
+		PairSetup = 0,
+		PairSetupWithAuth = 1,
+		PairVerify = 2,
+		AddPairing = 3,
+		RemovePairing = 4,
+		ListPairing = 5,
+		Resume = 6,
+		Unknown = 0xFF
+	};
+    const char* MethodToStr();
+
+	enum class State : uint8_t
+	{
+		Unknown = 0,
+		M1 = 1,
+		M2 = 2,
+		M3 = 3,
+		M4 = 4,
+		M5 = 5,
+		M6 = 6,
+	};
+
+	enum class Error : uint8_t
+	{
+		Unknown = 0x01,
+		Authentication = 0x02,
+		Backoff = 0x03,
+		MaxPeers = 0x04,
+		MaxTries = 0x05,
+		Unavailable = 0x06,
+		Busy = 0x07,
+	};
+
+    namespace PairingType
+    {
+        using T = uint32_t;
+        enum _flags : T
+        {
+            Transient = BIT_(4),
+            Split = BIT_(24)
+        };
+    }
+
+	// pairing TLVs
+	struct TlvMethod : public Tlv
+    {
+        uint8_t method;
+
+        TlvMethod(Method method_)
+        : Tlv(TlvType::Method, Buf(&method, sizeof(method)))
+        {
+			method = (uint8_t)method_;
+		}
+    };
+
+	struct TlvState : public Tlv
+    {
+        uint8_t state;
+
+        TlvState(State state_)
+        : Tlv(TlvType::State, Buf(&state, sizeof(state)))
+        {
+			state = (uint8_t)state_;
+		}
+    };
+
+	struct TlvError : public Tlv
+    {
+        uint8_t error;
+
+        TlvError(Error error_)
+        : Tlv(TlvType::Error, Buf(&error, sizeof(error)))
+        {
+			error = (uint8_t)error_;
+		}
+    };
+
+	struct TlvSeparator : public Tlv
+	{
+        TlvSeparator()
+        : Tlv(TlvType::Separator, Buf())
+        {
+		}
+	};
+
+	void init();
+
+	Hap::Status dispatch(Hap::Operation* op, Path path, Hap::Buf& req, Hap::Buf& rsp);
 }
 
 #endif /*_HAP_PAIRING_H_*/

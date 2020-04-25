@@ -1,91 +1,84 @@
-# uHap - Homekit Accessory Protocol server
+# uHap - Homekit Accessory Protocol server, BLE port
 
-The HAP server implements HomeKit Accessory Protocol for IP Accessories as defined by the HomeKit Accessory Protocol Specification (Non-Commertial version) Release R1.
-
-The core module is designed to be small and portable. Currently its only dependency is standard C++ library.
+The HAP server implements HomeKit Accessory Protocol for BLE Accessories as defined by the HomeKit Accessory Protocol Specification (Non-Commertial version) Release R2.
 
 Source code structure:
 * __Hap__ - core module
 * __Crypto__ - Cryptography
-* __CryptoTest__ - Cryptography test
-* __Linux__ - Linux platform specifics
-* __Windows__ - Windows platform specifics
+* __Crypto/Test__ - Cryptography test
 * __Util__
-* __WinTest__ - Windows test server
-* __RpiTest__ - Linux(Raspbian)-based light accessory
+*__zephyr__ - Zephyr RTOS platform support and test app
 
-## Building for Windows
+## Building for Zephyr
 
-* Visual Studio 2019 Preview is required.
-* The project uses Apple Bojour SDK. Install it and create BONJOUR_SDK environment variable pointing to the SDK root dir. Example:
-```
-  >echo %BONJOUR_SDK%
-  C:\Program Files\Bonjour SDK
-```
-* Open the uHap.sln, set the WinTest project as starup, and build it.
+The test app supports NRF52840 dongle and implements Lightbulb service using three-color LED as a lightbulb.
 
-## Building for Raspbian
+* Install Zephyr build tools and configure environment.
+* Clone this repo into directory of your choice.
+* Build the test app:
+```
+  > cd uhap\zephyr
+  > west build -b nrf52840dongle_nrf52840 test
+```
+* Flash the app to the dongle using your favorite way. For example, to flash through J-Link debugger, do:
+```
+  > west flash --snr <serial num of your J-LINK tool> 
+```
 
-* Build hardware. Refer to [CuteLight](https://www.hackster.io/gera_k/homekit-controlled-multicolor-light-36279b) project on Hackster for details.
-* Install latest Raspbian. GCC ver 8+ is required.
-* Setup RPi for WiFi 
-* Login to RPi 
-* Install Bonjour compatibility library:
+### Zephyr updates
+* To build standalone app (to use with external debugger), edit nrf52840dongle_nrf52840.dts:
 ```
-sudo apt install libavahi-compat-libdnssd-dev
+diff --git a/boards/arm/nrf52840dongle_nrf52840/nrf52840dongle_nrf52840.dts b/boards/arm/nrf52840dongle_nrf52840/nrf52840dongle_nrf52840.dts
+index 52d74a7392..2d33fa27b6 100644
+--- a/boards/arm/nrf52840dongle_nrf52840/nrf52840dongle_nrf52840.dts
++++ b/boards/arm/nrf52840dongle_nrf52840/nrf52840dongle_nrf52840.dts
+@@ -162,7 +162,8 @@
+  * fstab-stock         -compatible with Nordic nRF5 bootloader, default
+  * fstab-debugger      -to use an external debugger, w/o the nRF5 bootloader
+  */
+-#include "fstab-stock.dts"
++/*#include "fstab-stock.dts"*/
++#include "fstab-debugger.dts"
+
 ```
-* Clone, build, and install the RpiHap application:
+* Comment out couple of deprecated functions that fail to compile with C++ compiler:
 ```
-pi@raspberrypi:~/github $ git clone https://github.com/gera-k/uHap.git
-Cloning into 'uHap'...
-remote: Enumerating objects: 91, done.
-remote: Counting objects: 100% (91/91), done.
-remote: Compressing objects: 100% (71/71), done.
-remote: Total 91 (delta 18), reused 87 (delta 17), pack-reused 0
-Unpacking objects: 100% (91/91), done.
-pi@raspberrypi:~/github $ cd uHap/RpiHap/
-pi@raspberrypi:~/github/uHap/RpiHap $ make
-Generating dependencies...
-gcc -O2 -I. -I.. -Wall -c ../Hap/picohttpparser.c -o picohttpparser.o
-gcc -O2 -I. -I.. -Wall -c ../Hap/Hap.cpp -o Hap.o
-gcc -O2 -I. -I.. -Wall -c ../Hap/HapDb.cpp -o HapDb.o
-gcc -O2 -I. -I.. -Wall -c ../Hap/HapHttp.cpp -o HapHttp.o
-gcc -O2 -I. -I.. -Wall -c ../Hap/jsmn.cpp -o jsmn.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Aead.cpp -o Aead.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Chacha20.cpp -o Chacha20.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Curve25519.cpp -o Curve25519.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Ed25519.cpp -o Ed25519.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/HmacSha512.cpp -o HmacSha512.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/MD.cpp -o MD.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Poly1305.cpp -o Poly1305.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Sha512.cpp -o Sha512.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Sha512blk.cpp -o Sha512blk.o
-gcc -O2 -I. -I.. -Wall -c ../Crypto/Srp.cpp -o Srp.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Aeadtest.cpp -o Aeadtest.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Chacha20test.cpp -o Chacha20test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/CryptoTest.cpp -o CryptoTest.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Curve25519test.cpp -o Curve25519test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Ed25519test.cpp -o Ed25519test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/HkdfSha512test.cpp -o HkdfSha512test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/HmacSha512test.cpp -o HmacSha512test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/MdTest.cpp -o MdTest.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Poly1305test.cpp -o Poly1305test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/Sha512test.cpp -o Sha512test.o
-gcc -O2 -I. -I.. -Wall -c ../CryptoTest/SrpTest.cpp -o SrpTest.o
-gcc -O2 -I. -I.. -Wall -c ../Util/FileLog.cpp -o FileLog.o
-gcc -O2 -I. -I.. -Wall -c ../Linux/HapMdns.cpp -o HapMdns.o
-gcc -O2 -I. -I.. -Wall -c ../Linux/HapTcp.cpp -o HapTcp.o
-gcc -O2 -I. -I.. -Wall -c RpiHap.cpp -o RpiHap.o
-gcc  picohttpparser.o Hap.o HapDb.o HapHttp.o jsmn.o Aead.o Chacha20.o Curve25519.o Ed25519.o HmacSha512.o MD.o Poly1305.o Sha512.o Sha512blk.o Srp.o Aeadtest.o Chacha20test.o CryptoTest.o Curve25519test.o Ed25519test.o HkdfSha512test.o HmacSha512test.o MdTest.o Poly1305test.o Sha512test.o SrpTest.o FileLog.o HapMdns.o HapTcp.o RpiHap.o  -lm -lstdc++ -lpthread -ldns_sd -lwiringPi -o RpiHap
-pi@raspberrypi:~/github/uHap/RpiHap $ sudo make install
-install RpiHap /usr/sbin
-install homekit /etc/init.d
-pi@raspberrypi:~/github/uHap/RpiHap $ sudo systemctl enable homekit
-homekit.service is not a native service, redirecting to systemd-sysv-install.
-Executing: /lib/systemd/systemd-sysv-install enable homekit
-pi@raspberrypi:~/github/uHap/RpiHap $ sudo systemctl start homekit
-pi@raspberrypi:~/github/uHap/RpiHap $ ps ax | grep Rpi
- 2497 ?        Sl     0:00 /usr/sbin/RpiHap
- 2508 pts/0    S+     0:00 grep --color=auto Rpi
-pi@raspberrypi:~/github/uHap/RpiHap $  
+diff --git a/include/bluetooth/conn.h b/include/bluetooth/conn.h
+index c3c166c83c..eb207bb5cb 100644
+--- a/include/bluetooth/conn.h
++++ b/include/bluetooth/conn.h
+@@ -392,7 +392,7 @@ int bt_conn_le_create(const bt_addr_le_t *peer,
+                      const struct bt_conn_le_create_param *create_param,
+                      const struct bt_le_conn_param *conn_param,
+                      struct bt_conn **conn);
+-
++#if 0
+ __deprecated static inline
+ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
+                                  const struct bt_le_conn_param *conn_param)
+@@ -406,7 +406,7 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
+
+        return conn;
+ }
+-
++#endif
+ /** @brief Automatically connect to remote devices in whitelist.
+  *
+  *  This uses the Auto Connection Establishment procedure.
+@@ -424,13 +424,13 @@ struct bt_conn *bt_conn_create_le(const bt_addr_le_t *peer,
+  */
+ int bt_conn_le_create_auto(const struct bt_conn_le_create_param *create_param,
+                           const struct bt_le_conn_param *conn_param);
+-
++#if 0
+ __deprecated static inline
+ int bt_conn_create_auto_le(const struct bt_le_conn_param *conn_param)
+ {
+        return bt_conn_le_create_auto(BT_CONN_LE_CREATE_CONN_AUTO, conn_param);
+ }
+-
++#endif
+ /** @brief Stop automatic connect creation.
+  *
+  *  @return Zero on success or (negative) error code on failure.
 ```

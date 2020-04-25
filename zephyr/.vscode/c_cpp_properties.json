@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder:kernel}/kernel/include",
+                "${workspaceFolder:kernel}/arch/arm/include",
+                "${workspaceFolder:kernel}",
+                "${workspaceFolder:kernel}/include",
+                "${workspaceFolder:kernel}/include/drivers",
+                "${workspaceFolder:kernel}/soc/arm/nordic_nrf/nrf52",
+                "${workspaceFolder:kernel}/../modules/hal/nordic/nrfx/**",
+                "${workspaceFolder:kernel}/ext/hal/cmsis/Core/Include",
+                "${workspaceFolder:uhap}/**",
+                "${workspaceFolder:build}/include/generated",
+                "${workspaceFolder:build}/include/generated/syscalls",
+                "${env:GNUARMEMB_TOOLCHAIN_PATH}/arm-none-eabi/include/**"
+            ],
+            "forcedInclude": [
+                "${workspaceFolder:build}/include/generated/autoconf.h"
+            ],
+            "defines": [
+                "KERNEL",
+                "__ZEPHYR__=1"
+            ],
+            "compilerPath": "${env:GNUARMEMB_TOOLCHAIN_PATH}/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x86"
+        }
+    ],
+    "version": 4
+}

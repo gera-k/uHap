@@ -1,0 +1,7 @@
+
+&uart0 {
+	tx-pin = <10>;
+	rx-pin = <9>;
+	rts-pin = <11>;
+	cts-pin = <14>;
+};

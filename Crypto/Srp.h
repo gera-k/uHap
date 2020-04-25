@@ -1,25 +1,6 @@
 /*
-MIT License
-
-Copyright(c) 2019 Gera Kazakov
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files(the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
 */
 
 #ifndef _SRP_H_
@@ -94,18 +75,18 @@ namespace Srp
 	{
 	public:
 		Verifier() {}
-		Verifier(
-			const char *I,
-			const char *p,
-			const uint8_t* s = nullptr
-		);
 		void init(
 			const char *I_,
 			const char *p_,
-			const uint8_t* s = nullptr
+			const uint8_t* s_ = nullptr
 		);
 		void init(
 			const uint8_t* s_ = nullptr
+		);
+		void init(
+			const char *I_,
+			const uint8_t* v_,
+			const uint8_t* s_
 		);
 
 		const char *I = nullptr;
@@ -142,7 +123,7 @@ namespace Srp
 		bool verify(uint8_t* M, uint32_t M_len, uint8_t* V = nullptr);
 		void getV(uint8_t V[SRP_PROOF_BYTES]);
 
-	private:
+	//private:
 		uint8_t _id = 0xFF;
 		Verifier& _ver;
 		Crypto::Sha512 _M, _V;
@@ -155,7 +136,10 @@ namespace Srp
 	class User
 	{
 	public:
-		User(
+		User()
+		{}
+
+		void init(
 			const char * username,				// username
 			const char * password,				// password
 			const uint8_t a[SRP_PRIVATE_BYTES]	// Private value (random)
