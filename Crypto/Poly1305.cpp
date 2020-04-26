@@ -1,4 +1,9 @@
 /*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
+/*
  * Based on:
  * Public Domain poly1305 from Andrew Moon
  * Based on poly1305-donna.c, poly1305-donna-32.h and poly1305-donna.h from:
