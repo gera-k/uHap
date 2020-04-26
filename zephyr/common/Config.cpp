@@ -1,3 +1,8 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
 #include <logging/log.h>
 LOG_MODULE_REGISTER(appConfig, LOG_LEVEL_DBG);
 

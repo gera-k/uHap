@@ -1,3 +1,8 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
 #ifndef _HAP_BUFFER_H_
 #define _HAP_BUFFER_H_
 

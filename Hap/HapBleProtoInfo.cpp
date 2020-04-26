@@ -1,3 +1,8 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
 #define HAP_LOG_REGISTER hapBleProtoInfo
 #include "Platform.h"
 

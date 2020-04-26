@@ -1,3 +1,8 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
 #ifndef _HAP_TLV_H_
 #define _HAP_TLV_H_
 

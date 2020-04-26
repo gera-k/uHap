@@ -1,3 +1,7 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
 
 #include "math.h"
 #include "LbPwm.h"

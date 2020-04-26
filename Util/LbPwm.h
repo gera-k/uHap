@@ -1,3 +1,8 @@
+/*
+	Copyright(c) 2020 Gera Kazakov
+	SPDX-License-Identifier: Apache-2.0
+*/
+
 #ifndef _UHAP_UTILS_LBPWM_H_
 #define _UHAP_UTILS_LBPWM_H_
 
