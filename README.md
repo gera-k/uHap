@@ -6,14 +6,14 @@ Source code structure:
 * __Hap__ - core module
 * __Crypto__ - Cryptography
 * __Crypto/Test__ - Cryptography test
-* __Util__
-*__zephyr__ - Zephyr RTOS platform support and test app
+* __Util__ - various utilities
+* __zephyr__ - Zephyr RTOS platform support and test app
 
 ## Building for Zephyr
 
-The test app supports NRF52840 dongle and implements Lightbulb service using three-color LED as a lightbulb.
+The test app supports [NRF52840 dongle](https://docs.zephyrproject.org/latest/boards/arm/nrf52840dongle_nrf52840/doc/index.html) and implements Lightbulb service using three-color LED as a lightbulb.
 
-* Install Zephyr build tools and configure environment.
+* Install [Zephyr build tools](https://docs.zephyrproject.org/latest/getting_started/index.html) and configure environment.
 * Clone this repo into directory of your choice.
 * Build the test app:
 ```
