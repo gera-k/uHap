@@ -25,6 +25,20 @@ The test app supports [NRF52840 dongle](https://docs.zephyrproject.org/latest/bo
   > west flash --snr <serial num of your J-LINK tool> 
 ```
 
+### Zephyr shell
+
+* UART0 configuration is following:
+  * TX - P0.10
+  * RX - P0.09
+* shell commands:
+  * __hap config__  Print HAP configuration.
+  * __hap status__  Print HAP status.
+  * __hap reset [-m]__  (Manufacturing) Reset and reboot.
+  * __lb status__ Print LightBulb status.
+  * __lb on__ Turn LightBulb on.
+  * __lb off__  Turn LightBulb off.
+  * __lb pwm r g b__  Set LightBulb pwm (r, g, b: 0..255).
+
 ### Zephyr updates
 * To build standalone app (to use with external debugger), edit nrf52840dongle_nrf52840.dts:
 ```
