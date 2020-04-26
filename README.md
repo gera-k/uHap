@@ -1,8 +1,8 @@
 # uHap - Homekit Accessory Protocol server
 
-The HAP server implements HomeKit Accessory Protocol for IP Accessories as defined by the HomeKit Accessory Protocol Specification (Non-Commertial version) Release R1.
+The HAP server implements HomeKit Accessory Protocol for IP Accessories as defined by the HomeKit Accessory Protocol Specification (Non-Commertial version) Release R2.
 
-The core module is designed to be small and portable. Currently its only dependency is standard C++ library.
+BLE transport support is in ble branch.
 
 Source code structure:
 * __Hap__ - core module
