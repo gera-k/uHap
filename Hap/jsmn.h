@@ -1,5 +1,6 @@
 // derived from JSMN https://github.com/zserge/jsmn
 
+#include <cstdint>
 #ifndef __JSMN_H_
 #define __JSMN_H_
 

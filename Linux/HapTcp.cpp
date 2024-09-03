@@ -37,7 +37,7 @@ namespace Hap
 			Log::Msg("Tcp::Run - enter\n");
 
 			struct sockaddr_in address;
-			size_t addrlen = sizeof(address);
+			socklen_t addrlen = sizeof(address);
 
 			while (running)
 			{

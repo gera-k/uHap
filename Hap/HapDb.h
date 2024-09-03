@@ -172,7 +172,7 @@ namespace Hap
 		using type = uint64_t;
 		static inline int Read(char* s, uint32_t max, type v)
 		{
-			return snprintf(s, max, "%llu", v);
+			return snprintf(s, max, "%lu", v);
 		}
 		static inline bool Write(const Hap::Json::Obj& js, int t, type& v)
 		{
@@ -276,7 +276,7 @@ namespace Hap
 					max--;
 					if (max <= 0) goto Ret;
 				}
-				int l = snprintf(s, max, "\"%lld\"", v[i]);
+				int l = snprintf(s, max, "\"%ld\"", v[i]);
 				s += l;
 				max -= l;
 				if (max <= 0) goto Ret;

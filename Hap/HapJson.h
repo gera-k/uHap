@@ -11,7 +11,7 @@
 #include <limits>
 #include <charconv>
 
-#ifdef __GNUC__		// GCC is missing from_chars(,,double)
+#ifdef OLD__GNUC__		// GCC is missing from_chars(,,double)
 namespace std
 {
 	static inline from_chars_result from_chars(const char* st, const char* en, double& value)

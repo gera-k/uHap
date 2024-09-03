@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.hjson": "hjson",
+        "*.css": "Textual CSS",
+        "charconv": "cpp"
+    }
+}
